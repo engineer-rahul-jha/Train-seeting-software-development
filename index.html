@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Train Seat Reservation</title>
+    <style>
+        .seat { display: inline-block; width: 30px; height: 30px; margin: 5px; text-align: center; }
+        .available { background-color: #4CAF50; }
+        .booked { background-color: #FF0000; }
+    </style>
+</head>
+<body>
+    <h1>Train Seat Reservation</h1>
+    <div id="seats-display"></div>
+    <br>
+    <label for="numSeats">Enter seats to book:</label>
+    <input type="number" id="numSeats" min="1" max="7">
+    <button onclick="bookSeats()">Book Seats</button>
+
+    <script>
+        async function loadSeats() {
+            const response = await fetch('/seats');
+            const seats = await response.json();
+            const display = document.getElementById('seats-display');
+            display.innerHTML = '';
+            seats.forEach(seat => {
+                const seatDiv = document.createElement('div');
+                seatDiv.className = 'seat ' + (seat.is_booked ? 'booked' : 'available');
+                seatDiv.innerText = `R${seat.row}S${seat.seat_number}`;
+                display.appendChild(seatDiv);
+            });
+        }
+
+        async function bookSeats() {
+            const numSeats = document.getElementById('numSeats').value;
+            const response = await fetch('/book-seats', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ num_seats: parseInt(numSeats) })
+            });
+            const result = await response.json();
+            alert(result.error || `Booked Seats: ${result.booked_seats}`);
+            loadSeats();
+        }
+
+        loadSeats();
+    </script>
+</body>
+</html>
